@@ -2,6 +2,7 @@ import { Controller,Post,HttpStatus,Body, Get, UseGuards, HttpCode, Param, Parse
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
 import { GetUser } from 'src/auth/decorator';
+import { WalletDto } from './dto/wallet.dto';
 
 @Controller('wallet')
 export class WalletController {
@@ -16,6 +17,7 @@ export class WalletController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @HttpCode(HttpStatus.OK)
     @Get("wallets")
     async getwallets(@GetUser("id") id:number){
         const response = await this.walletService.getAllWallet(id)
@@ -24,6 +26,7 @@ export class WalletController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @HttpCode(HttpStatus.OK)
     @Post("fund/:id")
     async fundWallet( @Param("id",ParseIntPipe) id:number,@Body() dto:any,@GetUser("email") email:string){
         const response = await this.walletService.fundWallet(id,dto,email)
@@ -32,14 +35,16 @@ export class WalletController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @HttpCode(HttpStatus.OK)
     @Post("transfer")
-    async transfer(@Body() dto:any){
-        const response = await this.walletService.transfer(dto)
+    async transfer(@Body() dto:WalletDto,@GetUser("id") userId:number){
+        const response = await this.walletService.transfer(dto,userId)
         return {message:response}
 
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @HttpCode(HttpStatus.OK)
     @Get("balance")
     async getbalance(@GetUser("id") userId:number,@Body("id") id:number ){
         const response = await this.walletService.balance(userId,id)

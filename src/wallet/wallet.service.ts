@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 const Flutterwave = require("flutterwave-node-v3") 
 import { ConfigService } from '@nestjs/config';
+import { WalletDto } from './dto/wallet.dto';
 
 @Injectable()
 export class WalletService {
@@ -88,13 +89,18 @@ export class WalletService {
         
     }
 
-    async transfer(dto){
+    async transfer(dto:WalletDto,userId:number){
        try {
         const sender = await this.prisma.wallet.findFirst({
             where:{
-                id:dto.id
+                id:dto.id,
+                userId
             }
         })
+
+        if(!sender){
+            throw new BadRequestException("this wallet does not eist")
+        }
 
         const receiver = await this.prisma.wallet.findFirst({
             where:{
@@ -119,7 +125,7 @@ export class WalletService {
             // this.prisma.transaction.create({
             //   data: {
             //     amount: dto.amount,
-            //     walletId: dto.id,
+            //     walletId: { connect: { id: dto.receiverId } },
 
             //   },
             // }),
@@ -139,7 +145,9 @@ export class WalletService {
                 
                 }
             })
-           
+            if(!wallet){
+                throw new BadRequestException("this wallet does not eist")
+            }
             return wallet.balance  
         } catch (error) {
             throw error
